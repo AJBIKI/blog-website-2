@@ -19,7 +19,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Tag name is required' }, { status: 400 });
     }
 
-    const existingTag = await Tag.findOne({ name });
+    const existingTag = await Tag.findOne({ name, author: userId });
     if (existingTag) {
       return NextResponse.json({ error: 'Tag name already exists' }, { status: 409 });
     }
@@ -27,6 +27,7 @@ export async function POST(req: Request) {
     const tag = new Tag({
       name,
       slug: slugify(name),
+      author: userId,
     });
 
     await tag.save();
@@ -49,7 +50,7 @@ export async function GET(req: Request) {
 
   try {
     await connectToDatabase();
-    const tags = await Tag.find().select('name slug').lean();
+    const tags = await Tag.find({ author: userId }).select('name slug').lean();
     return NextResponse.json(tags, { status: 200 });
   } catch (error) {
     console.error('Error fetching tags:', error);

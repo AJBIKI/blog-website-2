@@ -159,7 +159,6 @@
 
 
 
-
 import { redirect } from 'next/navigation';
 import { getCurrentUser } from '@/lib/getCurrentUser';
 import connectToDatabase from '@/lib/db';
@@ -169,12 +168,12 @@ import PostForm from '@/components/forms/PostForm';
 import { createPostAction } from '@/lib/actions';
 import { PostFormCategory, PostFormTag } from '@/types/database';
 
-async function getCategoriesAndTags() {
+async function getCategoriesAndTags(userId: string) {
   try {
     await connectToDatabase();
     const [categoriesResult, tagsResult] = await Promise.all([
-      Category.find({}).select('_id name').lean(),
-      Tag.find({}).select('_id name').lean(),
+      Category.find({ author: userId }).select('_id name author').lean(),
+      Tag.find({ author: userId }).select('_id name author').lean(),
     ]);
     
     const categories = categoriesResult as unknown as PostFormCategory[];
@@ -201,7 +200,7 @@ export default async function NewPostPage() {
     redirect('/sign-in');
   }
 
-  const { categories, tags, error } = await getCategoriesAndTags();
+  const { categories, tags, error } = await getCategoriesAndTags(user.id);
 
   return (
     <div className="container mx-auto py-8 px-4">

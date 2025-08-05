@@ -1,17 +1,23 @@
-import { redirect } from 'next/navigation';
+import { redirect, notFound } from 'next/navigation';
 import { getCurrentUser } from '@/lib/getCurrentUser';
 import connectToDatabase from '@/lib/db';
 import Tag from '@/models/Tag';
 import TagForm from '@/components/forms/TagForm';
 import { updateTagAction } from '@/lib/actions';
 import { LeanTag } from '@/types/database';
+import { isValidObjectId } from '@/lib/utils';
 
-async function getTag(id: string) {
+async function getTag(id: string, userId: string) {
+  // Validate ObjectId format first
+  if (!isValidObjectId(id)) {
+    return { tag: null, error: 'Invalid tag ID format.' };
+  }
+
   try {
     await connectToDatabase();
-    const tagResult = await Tag.findById(id).select('_id name').lean();
+    const tagResult = await Tag.findOne({ _id: id, author: userId }).select('_id name').lean();
     if (!tagResult) {
-      return { tag: null, error: 'Tag not found.' };
+      return { tag: null, error: 'Tag not found or unauthorized.' };
     }
     
     const tag = tagResult as unknown as LeanTag;
@@ -36,10 +42,16 @@ export default async function EditTagPage({ params }: { params: Promise<{ id: st
   }
 
    const { id } = await params;
-  const { tag, error } = await getTag(id);
+   
+  // Early validation - if ID is invalid, show 404
+  if (!isValidObjectId(id)) {
+    notFound();
+  }
+
+  const { tag, error } = await getTag(id, user.id);
 
   if (!tag || error) {
-    redirect('/admin/tags');
+    notFound();
   }
 
   return (

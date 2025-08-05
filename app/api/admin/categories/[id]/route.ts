@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 import  connectToDatabase  from '@/lib/db';
 import Category from '@/models/Category';
 import { slugify } from '@/lib/slugify';
+import { isValidObjectId } from '@/lib/utils';
 
 export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { userId } = await auth();
@@ -10,12 +11,18 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
+  const {id}=await params
+
+  // Validate ObjectId format
+  if (!isValidObjectId(id)) {
+    return NextResponse.json({ error: 'Invalid category ID format' }, { status: 400 });
+  }
+
   try {
     await connectToDatabase();
 
     const body = await req.json();
     const { name } = body;
-    const {id}=await params
 
     // Validate required field
     if (!name) {
@@ -25,8 +32,12 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
       );
     }
 
-    // Check for existing category with same name
-    const existingCategory = await Category.findOne({ name, _id: { $ne: id } });
+    // Check for existing category with same name for this user
+    const existingCategory = await Category.findOne({
+      name,
+      author: userId,
+      _id: { $ne: id }
+    });
     if (existingCategory) {
       return NextResponse.json(
         { error: 'Category name already exists' },
@@ -34,8 +45,8 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
       );
     }
 
-    const updatedCategory = await Category.findByIdAndUpdate(
-      id,
+    const updatedCategory = await Category.findOneAndUpdate(
+      { _id: id, author: userId },
       {
         name,
         slug: slugify(name),
@@ -44,7 +55,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     );
 
     if (!updatedCategory) {
-      return NextResponse.json({ error: 'Category not found' }, { status: 404 });
+      return NextResponse.json({ error: 'Category not found or unauthorized' }, { status: 404 });
     }
 
     return NextResponse.json(
@@ -67,13 +78,18 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ id: s
   }
    const {id}=await params
 
+  // Validate ObjectId format
+  if (!isValidObjectId(id)) {
+    return NextResponse.json({ error: 'Invalid category ID format' }, { status: 400 });
+  }
+
   try {
     await connectToDatabase();
 
-    const deletedCategory = await Category.findByIdAndDelete(id);
+    const deletedCategory = await Category.findOneAndDelete({ _id: id, author: userId });
 
     if (!deletedCategory) {
-      return NextResponse.json({ error: 'Category not found' }, { status: 404 });
+      return NextResponse.json({ error: 'Category not found or unauthorized' }, { status: 404 });
     }
 
     return NextResponse.json(

@@ -106,8 +106,7 @@
 //     </div>
 //   );
 // }
-
-import { redirect } from 'next/navigation';
+import { redirect, notFound } from 'next/navigation';
 import { getCurrentUser } from '@/lib/getCurrentUser';
 import connectToDatabase from '@/lib/db';
 import Post from '@/models/Post';
@@ -115,6 +114,7 @@ import Category from '@/models/Category';
 import Tag from '@/models/Tag';
 import PostForm from '@/components/forms/PostForm';
 import { updatePostAction } from '@/lib/actions';
+import { isValidObjectId } from '@/lib/utils';
 
 interface PostType {
   _id: string;
@@ -131,20 +131,27 @@ interface PostType {
 interface CategoryType {
   _id: string;
   name: string;
+  author: string; // Added to match schema and filter
 }
 
 interface TagType {
   _id: string;
   name: string;
+  author: string; // Added to match schema and filter
 }
 
-async function getPostAndCategories(id: string) {
+async function getPostAndCategories(id: string, userId: string) {
+  // Validate ObjectId format first
+  if (!isValidObjectId(id)) {
+    return { post: null, categories: [], tags: [], error: 'Invalid post ID format.' };
+  }
+
   try {
     await connectToDatabase();
     const [post, categories, tags] = await Promise.all([
       Post.findById(id).select('title content category tags status coverImage publishedAt slug').lean(),
-      Category.find({}).select('name _id').lean(),
-      Tag.find({}).select('name _id').lean(),
+      Category.find({ author: userId }).select('name _id author').lean(),
+      Tag.find({ author: userId }).select('name _id author').lean(),
     ]);
     if (!post) {
       return { post: null, categories: [], tags: [], error: 'Post not found.' };
@@ -168,10 +175,16 @@ export default async function EditPostPage({ params }: { params: Promise<{ id: s
   }
 
   const { id } = await params; // Await params to access id
-  const { post, categories, tags, error } = await getPostAndCategories(id);
+  
+  // Early validation - if ID is invalid, show 404
+  if (!isValidObjectId(id)) {
+    notFound();
+  }
+
+  const { post, categories, tags, error } = await getPostAndCategories(id, user.id);
 
   if (!post || error) {
-    redirect('/admin/posts');
+    notFound();
   }
 
   return (

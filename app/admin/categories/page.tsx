@@ -336,7 +336,7 @@ export default async function CategoriesPage() {
   }
 
   await connectToDatabase();
-  const categoriesData = await Category.find().select('name slug description createdAt updatedAt').lean();
+  const categoriesData = await Category.find({ author: user.id }).select('name slug description createdAt updatedAt').lean();
   const categories: LeanCategoryType[] = JSON.parse(JSON.stringify(categoriesData));
 
   return (
@@ -377,11 +377,17 @@ export default async function CategoriesPage() {
 
                       try {
                         await connectToDatabase();
-                        const deletedCategory = await Category.findOneAndDelete({ _id: category._id });
+                        const deletedCategory = await Category.findOneAndDelete({
+                          _id: category._id,
+                          author: user.id
+                        });
 
                         if (deletedCategory) {
                           // Update posts that reference this category to have null category
-                          await Post.updateMany({ category: category._id }, { $set: { category: null } });
+                          await Post.updateMany({
+                            category: category._id,
+                            author: user.id
+                          }, { $set: { category: null } });
                         }
 
                         revalidatePath('/admin/categories');

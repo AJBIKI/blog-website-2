@@ -173,6 +173,7 @@ import connectToDatabase from '@/lib/db';
 import Post from '@/models/Post';
 import Category from '@/models/Category';
 import Tag from '@/models/Tag';
+import { getCurrentUser } from '@/lib/getCurrentUser';
 import RecentPostsTable from '@/components/dashboard/RecentPostsTable';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -181,9 +182,16 @@ import { BookOpen, Tag as TagIcon, Layers3, FileText, CheckCircle2, Clock } from
 import Link from 'next/link';
 
 // --- Data Fetching ---
-async function getDashboardStats() {
+async function getDashboardStats(userId: string) {
     try {
         await connectToDatabase();
+
+        // Get the current user from the database
+        const currentUser = await getCurrentUser();
+        
+        if (!currentUser) {
+            throw new Error('User not found');
+        }
 
         const [
             publishedCount,
@@ -193,12 +201,12 @@ async function getDashboardStats() {
             tagCount,
             recentPosts
         ] = await Promise.all([
-            Post.countDocuments({ status: 'published' }),
-            Post.countDocuments({ status: 'draft' }),
-            Post.countDocuments({ status: 'scheduled' }),
-            Category.countDocuments(),
-            Tag.countDocuments(),
-            Post.find({})
+            Post.countDocuments({ status: 'published', author: currentUser._id }),
+            Post.countDocuments({ status: 'draft', author: currentUser._id }),
+            Post.countDocuments({ status: 'scheduled', author: currentUser._id }),
+            Category.countDocuments({ author: userId }),
+            Tag.countDocuments({ author: userId }),
+            Post.find({ author: currentUser._id })
                 .sort({ createdAt: -1 })
                 .limit(5)
                 .select('title slug status createdAt')
@@ -250,7 +258,7 @@ export default async function DashboardPage() {
         tagCount,
         recentPosts,
         error
-    } = await getDashboardStats();
+    } = await getDashboardStats(userId);
 
     // Dashboard Header Component
     const DashboardHeader = () => (

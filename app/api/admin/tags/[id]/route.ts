@@ -1,8 +1,9 @@
 import { auth } from '@clerk/nextjs/server';
 import { NextResponse } from 'next/server';
-import  connectToDatabase  from '@/lib/db';
+import connectToDatabase from '@/lib/db';
 import Tag from '@/models/Tag';
 import { slugify } from '@/lib/slugify';
+import { isValidObjectId } from '@/lib/utils';
 
 export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { userId } =await  auth();
@@ -10,6 +11,11 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
    const {id}=await params
+
+  // Validate ObjectId format
+  if (!isValidObjectId(id)) {
+    return NextResponse.json({ error: 'Invalid tag ID format' }, { status: 400 });
+  }
 
   try {
     await connectToDatabase();
@@ -25,8 +31,12 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
       );
     }
 
-    // Check for existing tag with same name
-    const existingTag = await Tag.findOne({ name, _id: { $ne:id} });
+    // Check for existing tag with same name for this user
+    const existingTag = await Tag.findOne({
+      name,
+      author: userId,
+      _id: { $ne: id }
+    });
     if (existingTag) {
       return NextResponse.json(
         { error: 'Tag name already exists' },
@@ -34,8 +44,8 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
       );
     }
 
-    const updatedTag = await Tag.findByIdAndUpdate(
-     id,
+    const updatedTag = await Tag.findOneAndUpdate(
+      { _id: id, author: userId },
       {
         name,
         slug: slugify(name),
@@ -44,7 +54,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     );
 
     if (!updatedTag) {
-      return NextResponse.json({ error: 'Tag not found' }, { status: 404 });
+      return NextResponse.json({ error: 'Tag not found or unauthorized' }, { status: 404 });
     }
 
     return NextResponse.json(
@@ -67,13 +77,18 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ id: s
   }
    const {id}=await params
 
+  // Validate ObjectId format
+  if (!isValidObjectId(id)) {
+    return NextResponse.json({ error: 'Invalid tag ID format' }, { status: 400 });
+  }
+
   try {
     await connectToDatabase();
 
-    const deletedTag = await Tag.findByIdAndDelete(id);
+    const deletedTag = await Tag.findOneAndDelete({ _id: id, author: userId });
 
     if (!deletedTag) {
-      return NextResponse.json({ error: 'Tag not found' }, { status: 404 });
+      return NextResponse.json({ error: 'Tag not found or unauthorized' }, { status: 404 });
     }
 
     return NextResponse.json(

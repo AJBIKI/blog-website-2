@@ -1192,6 +1192,7 @@ export async function createCategoryAction(formData: FormData) {
         .replace(/(^-|-$)/g, ''),
       createdAt: new Date(),
       updatedAt: new Date(),
+      author: user.id, // Add author field with user ID
     };
 
     const existingCategory = await Category.findOne({ slug: categoryData.slug });
@@ -1277,6 +1278,7 @@ export async function createTagAction(formData: FormData) {
         .replace(/(^-|-$)/g, ''),
       createdAt: new Date(),
       updatedAt: new Date(),
+      author: user.id, // Add author field with user ID
     };
 
     const existingTag = await Tag.findOne({ slug: tagData.slug });

@@ -260,10 +260,10 @@ interface LeanTagType {
   updatedAt?: string;
 }
 
-async function getTags() {
+async function getTags(userId: string) {
   try {
     await connectToDatabase();
-    const tags :LeanTagType[]=await Tag.find({}).select('name slug _id createdAt updatedAt').lean() as LeanTagType[];
+    const tags :LeanTagType[]=await Tag.find({ author: userId }).select('name slug _id createdAt updatedAt').lean() as LeanTagType[];
     return {
       tags: JSON.parse(JSON.stringify(tags)),
       error: null,
@@ -283,7 +283,7 @@ export default async function TagsPage() {
     redirect('/sign-in');
   }
 
-  const { tags, error } = await getTags();
+  const { tags, error } = await getTags(user.id);
 
 return (
   <div className="container mx-auto py-8 px-4">

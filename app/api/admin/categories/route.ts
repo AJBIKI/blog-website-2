@@ -19,7 +19,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Category name is required' }, { status: 400 });
     }
 
-    const existingCategory = await Category.findOne({ name });
+    const existingCategory = await Category.findOne({ name, author: userId });
     if (existingCategory) {
       return NextResponse.json({ error: 'Category name already exists' }, { status: 409 });
     }
@@ -27,6 +27,7 @@ export async function POST(req: Request) {
     const category = new Category({
       name,
       slug: slugify(name),
+      author: userId,
     });
 
     await category.save();
@@ -49,7 +50,7 @@ export async function GET(req: Request) {
 
   try {
     await connectToDatabase();
-    const categories = await Category.find().select('name slug').lean();
+    const categories = await Category.find({ author: userId }).select('name slug').lean();
     return NextResponse.json(categories, { status: 200 });
   } catch (error) {
     console.error('Error fetching categories:', error);
