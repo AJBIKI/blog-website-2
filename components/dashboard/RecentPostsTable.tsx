@@ -35,7 +35,7 @@ export default function RecentPostsTable({ posts }: RecentPostsTableProps) {
                 </td>
                 <td className="py-3 px-6 text-center">
                   <Link
-                    href={`/admin/posts/${post.slug}/edit`}
+                    href={`/admin/posts`}
                     className="text-blue-600 hover:underline"
                   >
                     Edit

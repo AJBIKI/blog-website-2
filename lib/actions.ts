@@ -1176,6 +1176,52 @@ export async function deleteCategoryAction(categoryId: string) {
   }
 }
 
+// export async function createCategoryAction(formData: FormData) {
+//   const user = await getCurrentUser();
+//   if (!user) {
+//     return { success: false, message: 'Unauthorized: You must be logged in.' };
+//   }
+
+//   try {
+//     await connectToDatabase();
+//     const categoryData = {
+//       name: formData.get('name') as string,
+//       slug: (formData.get('name') as string)
+//         .toLowerCase()
+//         .replace(/[^a-z0-9]+/g, '-')
+//         .replace(/(^-|-$)/g, ''),
+//       createdAt: new Date(),
+//       updatedAt: new Date(),
+//       author: user.id, // Add author field with user ID
+//     };
+
+//     const existingCategory = await Category.findOne({ slug: categoryData.slug });
+//     if (existingCategory) {
+//       return { success: false, message: 'A category with this name already exists.' };
+//     }
+
+//     const category = await Category.create(categoryData);
+//     revalidatePath('/admin/categories');
+//     revalidatePath('/admin/posts/new');
+//     revalidatePath('/admin/dashboard'); // Ensure this triggers a refresh
+//     return {
+//       success: true,
+//       message: 'Category created successfully.',
+//       categoryId: category._id.toString(),
+//       redirect: '/admin/categories',
+//     };
+//   } catch (error: any) {
+//     console.error('Error creating category:', error);
+//     if (error.name === 'ValidationError') {
+//       return { success: false, message: `Validation failed: ${error.message}` };
+//     }
+//     return { success: false, message: 'An unexpected error occurred while creating the category.' };
+//   }
+// }
+
+
+//update for category match with user
+
 export async function createCategoryAction(formData: FormData) {
   const user = await getCurrentUser();
   if (!user) {
@@ -1195,14 +1241,15 @@ export async function createCategoryAction(formData: FormData) {
       author: user.id, // Add author field with user ID
     };
 
-    const existingCategory = await Category.findOne({ slug: categoryData.slug });
+    const existingCategory = await Category.findOne({ slug: categoryData.slug, author: user.id });
     if (existingCategory) {
-      return { success: false, message: 'A category with this name already exists.' };
+      return { success: false, message: 'A category with this name already exists for you.' };
     }
 
     const category = await Category.create(categoryData);
     revalidatePath('/admin/categories');
     revalidatePath('/admin/posts/new');
+    revalidatePath('/admin/dashboard'); // Ensure this triggers a refresh
     return {
       success: true,
       message: 'Category created successfully.',
@@ -1247,6 +1294,7 @@ export async function updateCategoryAction(categoryId: string, formData: FormDat
 
     revalidatePath('/admin/categories');
     revalidatePath('/admin/posts/new');
+    revalidatePath('/admin/dashboard'); // Ensure this triggers a refresh
     return {
       success: true,
       message: 'Category updated successfully.',
@@ -1262,47 +1310,48 @@ export async function updateCategoryAction(categoryId: string, formData: FormDat
   }
 }
 
-export async function createTagAction(formData: FormData) {
-  const user = await getCurrentUser();
-  if (!user) {
-    return { success: false, message: 'Unauthorized: You must be logged in.' };
-  }
+// export async function createTagAction(formData: FormData) {
+//   const user = await getCurrentUser();
+//   if (!user) {
+//     return { success: false, message: 'Unauthorized: You must be logged in.' };
+//   }
 
-  try {
-    await connectToDatabase();
-    const tagData = {
-      name: formData.get('name') as string,
-      slug: (formData.get('name') as string)
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/(^-|-$)/g, ''),
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      author: user.id, // Add author field with user ID
-    };
+//   try {
+//     await connectToDatabase();
+//     const tagData = {
+//       name: formData.get('name') as string,
+//       slug: (formData.get('name') as string)
+//         .toLowerCase()
+//         .replace(/[^a-z0-9]+/g, '-')
+//         .replace(/(^-|-$)/g, ''),
+//       createdAt: new Date(),
+//       updatedAt: new Date(),
+//       author: user.id, // Add author field with user ID
+//     };
 
-    const existingTag = await Tag.findOne({ slug: tagData.slug });
-    if (existingTag) {
-      return { success: false, message: 'A tag with this name already exists.' };
-    }
+//     const existingTag = await Tag.findOne({ slug: tagData.slug });
+//     if (existingTag) {
+//       return { success: false, message: 'A tag with this name already exists.' };
+//     }
 
-    const tag = await Tag.create(tagData);
-    revalidatePath('/admin/tags');
-    revalidatePath('/admin/posts/new');
-    return {
-      success: true,
-      message: 'Tag created successfully.',
-      tagId: tag._id.toString(),
-      redirect: '/admin/tags',
-    };
-  } catch (error: any) {
-    console.error('Error creating tag:', error);
-    if (error.name === 'ValidationError') {
-      return { success: false, message: `Validation failed: ${error.message}` };
-    }
-    return { success: false, message: 'An unexpected error occurred while creating the tag.' };
-  }
-}
+//     const tag = await Tag.create(tagData);
+//     revalidatePath('/admin/tags');
+//     revalidatePath('/admin/posts/new');
+//     revalidatePath('/admin/dashboard'); // Ensure this triggers a refresh
+//     return {
+//       success: true,
+//       message: 'Tag created successfully.',
+//       tagId: tag._id.toString(),
+//       redirect: '/admin/tags',
+//     };
+//   } catch (error: any) {
+//     console.error('Error creating tag:', error);
+//     if (error.name === 'ValidationError') {
+//       return { success: false, message: `Validation failed: ${error.message}` };
+//     }
+//     return { success: false, message: 'An unexpected error occurred while creating the tag.' };
+//   }
+// }
 
 // export async function deleteTagAction(tagId: string) {
 //   const user = await getCurrentUser();
@@ -1331,6 +1380,50 @@ export async function createTagAction(formData: FormData) {
 // }
 
 
+export async function createTagAction(formData: FormData) {
+  const user = await getCurrentUser();
+  if (!user) {
+    return { success: false, message: 'Unauthorized: You must be logged in.' };
+  }
+
+  try {
+    await connectToDatabase();
+    const tagData = {
+      name: formData.get('name') as string,
+      slug: (formData.get('name') as string)
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/(^-|-$)/g, ''),
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      author: user.id, // Add author field with user ID
+    };
+
+    const existingTag = await Tag.findOne({ slug: tagData.slug, author: user.id });
+    if (existingTag) {
+      return { success: false, message: 'A tag with this name already exists for you.' };
+    }
+
+    const tag = await Tag.create(tagData);
+    revalidatePath('/admin/tags');
+    revalidatePath('/admin/posts/new');
+    revalidatePath('/admin/dashboard'); // Ensure this triggers a refresh
+    return {
+      success: true,
+      message: 'Tag created successfully.',
+      tagId: tag._id.toString(),
+      redirect: '/admin/tags',
+    };
+  } catch (error: any) {
+    console.error('Error creating tag:', error);
+    if (error.name === 'ValidationError') {
+      return { success: false, message: `Validation failed: ${error.message}` };
+    }
+    return { success: false, message: 'An unexpected error occurred while creating the tag.' };
+  }
+}
+
+
 export async function deleteTagAction(formData: FormData) {
   const user = await getCurrentUser();
   if (!user) {
@@ -1354,6 +1447,7 @@ export async function deleteTagAction(formData: FormData) {
     revalidatePath('/admin/tags');
     revalidatePath('/admin/posts');
     revalidatePath('/blog');
+    
   } catch (error) {
     console.error('Error deleting tag:', error);
   }
@@ -1388,6 +1482,7 @@ export async function updateTagAction(tagId: string, formData: FormData) {
 
     revalidatePath('/admin/tags');
     revalidatePath('/admin/posts/new');
+    revalidatePath('/admin/dashboard'); // Ensure this triggers a refresh
     return {
       success: true,
       message: 'Tag updated successfully.',
