@@ -1,4 +1,6 @@
 import { ClerkProvider } from '@clerk/nextjs'
+import Navbar from '@/components/ui/Navbar'
+import { ThemeProvider } from '@/components/ThemeProvider'
 import './globals.css'
 
 export default function RootLayout({
@@ -8,9 +10,17 @@ export default function RootLayout({
 }) {
   return (
     <ClerkProvider>
-      <html lang="en">
+      <html lang="en" suppressHydrationWarning>
         <body>
-          {children}
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+            <Navbar />
+            {children}
+          </ThemeProvider>
         </body>
       </html>
     </ClerkProvider>

@@ -2,19 +2,32 @@
 @tailwind components; 
 @tailwind utilities;
 
-/* Add these fixes */
-* {
-  box-sizing: border-box;
+@layer base {
+  :root {
+    --background: #ffffff;
+    --foreground: #111827;
+  }
+
+  .dark {
+    --background: #111827;
+    --foreground: #ffffff;
+  }
 }
 
-html, body {
-  height: 100%;
-  margin: 0;
-  padding: 0;
-}
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
 
-/* Your existing styles */
-body {
-  background-color: #111827;
-  color: #ffffff;
+  html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+  }
+
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    @apply transition-colors duration-300;
+  }
 }
