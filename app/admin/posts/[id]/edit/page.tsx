@@ -35,7 +35,7 @@ async function getPostAndCategories(id: string, userId: string) {
     await connectToDatabase();
     // Fetch post, categories, and tags
     const [post, categories, tags] = await Promise.all([
-      Post.findOne({ slug: id, author: userId })
+      Post.findOne({ _id: id, author: userId })
         .populate('category', 'name slug')
         .populate('tags', 'name slug')
         .lean(),
