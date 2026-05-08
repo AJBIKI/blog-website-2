@@ -5,6 +5,7 @@ interface ICategory extends Document {
   name: string;
   slug: string;
   description?: string;
+  author: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -31,6 +32,11 @@ const CategorySchema: Schema = new Schema(
       type: String,
       required: false,
       trim: true,
+    },
+    author: {
+      type: String,
+      required: true,
+      index: true,
     },
   },
   {

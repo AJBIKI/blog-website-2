@@ -1,6 +1,6 @@
 import { auth } from '@clerk/nextjs/server';
 import { NextResponse } from 'next/server';
-import  connectToDatabase  from '@/lib/db';
+import connectToDatabase from '@/lib/db';
 import Category from '@/models/Category';
 import { slugify } from '@/lib/slugify';
 
@@ -15,7 +15,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
 
     const body = await req.json();
     const { name } = body;
-    const {id}=await params
+    const { id } = await params
 
     // Validate required field
     if (!name) {
@@ -26,7 +26,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     }
 
     // Check for existing category with same name
-    const existingCategory = await Category.findOne({ name, _id: { $ne: id } });
+    const existingCategory = await Category.findOne({ name, _id: { $ne: id }, author: userId });
     if (existingCategory) {
       return NextResponse.json(
         { error: 'Category name already exists' },
@@ -34,8 +34,8 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
       );
     }
 
-    const updatedCategory = await Category.findByIdAndUpdate(
-      id,
+    const updatedCategory = await Category.findOneAndUpdate(
+      { _id: id, author: userId },
       {
         name,
         slug: slugify(name),
@@ -61,16 +61,16 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
 }
 
 export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
-  const { userId } =await auth();
+  const { userId } = await auth();
   if (!userId) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
-   const {id}=await params
+  const { id } = await params
 
   try {
     await connectToDatabase();
 
-    const deletedCategory = await Category.findByIdAndDelete(id);
+    const deletedCategory = await Category.findOneAndDelete({ _id: id, author: userId });
 
     if (!deletedCategory) {
       return NextResponse.json({ error: 'Category not found' }, { status: 404 });

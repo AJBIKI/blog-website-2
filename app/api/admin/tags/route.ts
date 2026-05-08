@@ -5,7 +5,7 @@ import Tag from '@/models/Tag';
 import { slugify } from '@/lib/slugify';
 
 export async function POST(req: Request) {
-  const { userId } =await auth();
+  const { userId } = await auth();
   if (!userId) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
@@ -27,6 +27,7 @@ export async function POST(req: Request) {
     const tag = new Tag({
       name,
       slug: slugify(name),
+      author: userId,
     });
 
     await tag.save();
@@ -42,14 +43,14 @@ export async function POST(req: Request) {
 }
 
 export async function GET(req: Request) {
-  const { userId } =await auth();
+  const { userId } = await auth();
   if (!userId) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
   try {
     await connectToDatabase();
-    const tags = await Tag.find().select('name slug').lean();
+    const tags = await Tag.find({ author: userId }).select('name slug').lean();
     return NextResponse.json(tags, { status: 200 });
   } catch (error) {
     console.error('Error fetching tags:', error);

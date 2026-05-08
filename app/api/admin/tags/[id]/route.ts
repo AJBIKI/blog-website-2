@@ -1,15 +1,15 @@
 import { auth } from '@clerk/nextjs/server';
 import { NextResponse } from 'next/server';
-import  connectToDatabase  from '@/lib/db';
+import connectToDatabase from '@/lib/db';
 import Tag from '@/models/Tag';
 import { slugify } from '@/lib/slugify';
 
 export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
-  const { userId } =await  auth();
+  const { userId } = await auth();
   if (!userId) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
-   const {id}=await params
+  const { id } = await params
 
   try {
     await connectToDatabase();
@@ -26,7 +26,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     }
 
     // Check for existing tag with same name
-    const existingTag = await Tag.findOne({ name, _id: { $ne:id} });
+    const existingTag = await Tag.findOne({ name, _id: { $ne: id }, author: userId });
     if (existingTag) {
       return NextResponse.json(
         { error: 'Tag name already exists' },
@@ -34,12 +34,9 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
       );
     }
 
-    const updatedTag = await Tag.findByIdAndUpdate(
-     id,
-      {
-        name,
-        slug: slugify(name),
-      },
+    const updatedTag = await Tag.findOneAndUpdate(
+      { _id: id, author: userId },
+      { name, slug: slugify(name) },
       { new: true }
     );
 
@@ -61,16 +58,16 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
 }
 
 export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
-  const { userId } =await auth();
+  const { userId } = await auth();
   if (!userId) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
-   const {id}=await params
+  const { id } = await params
 
   try {
     await connectToDatabase();
 
-    const deletedTag = await Tag.findByIdAndDelete(id);
+    const deletedTag = await Tag.findOneAndDelete({ _id: id, author: userId });
 
     if (!deletedTag) {
       return NextResponse.json({ error: 'Tag not found' }, { status: 404 });

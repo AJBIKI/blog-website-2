@@ -5,7 +5,7 @@ import Category from '@/models/Category';
 import { slugify } from '@/lib/slugify';
 
 export async function POST(req: Request) {
-  const { userId } =await  auth();
+  const { userId } = await auth();
   if (!userId) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
@@ -27,6 +27,7 @@ export async function POST(req: Request) {
     const category = new Category({
       name,
       slug: slugify(name),
+      author: userId,
     });
 
     await category.save();
@@ -42,14 +43,14 @@ export async function POST(req: Request) {
 }
 
 export async function GET(req: Request) {
-  const { userId } =await auth();
+  const { userId } = await auth();
   if (!userId) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
   try {
     await connectToDatabase();
-    const categories = await Category.find().select('name slug').lean();
+    const categories = await Category.find({ author: userId }).select('name slug').lean();
     return NextResponse.json(categories, { status: 200 });
   } catch (error) {
     console.error('Error fetching categories:', error);

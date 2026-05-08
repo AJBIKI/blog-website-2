@@ -1,174 +1,9 @@
-// import  connectToDatabase  from '@/lib/db';
-// import Post from '@/models/Post';
-// import Category from '@/models/Category';
-// import Tag from '@/models/Tag';
-// import  RecentPostsTable  from '@/components/dashboard/RecentPostsTable';
-// import { StatCard } from '@/components/dashboard/StatCard';
-// import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-
-// // FIX: Using common icons for a consistent and professional look.
-// import { BookOpen, Tag as TagIcon, Layers3, FileText, CheckCircle2, Clock } from 'lucide-react';
-// import Link from 'next/link';
-
-// // --- Data Fetching ---
-// // FIX: A more comprehensive data fetching function to gather all dashboard stats in one go.
-// async function getDashboardStats() {
-//     try {
-//         await connectToDatabase();
-
-//         const [
-//             publishedCount,
-//             draftCount,
-//             scheduledCount,
-//             categoryCount,
-//             tagCount,
-//             recentPosts
-//         ] = await Promise.all([
-//             Post.countDocuments({ status: 'published' }),
-//             Post.countDocuments({ status: 'draft' }),
-//             Post.countDocuments({ status: 'scheduled' }),
-//             Category.countDocuments(),
-//             Tag.countDocuments(),
-//             Post.find({})
-//                 .sort({ createdAt: -1 })
-//                 .limit(5)
-//                 .select('title slug status createdAt')
-//                 .lean(),
-//         ]);
-
-//         const totalPosts = publishedCount + draftCount + scheduledCount;
-
-//         return {
-//             totalPosts,
-//             publishedCount,
-//             draftCount,
-//             scheduledCount,
-//             categoryCount,
-//             tagCount,
-//             recentPosts: JSON.parse(JSON.stringify(recentPosts)),
-//             error: null,
-//         };
-//     } catch (error) {
-//         console.error("Error fetching dashboard stats:", error);
-//         // FIX: Return a structured error object for graceful handling in the UI.
-//         return {
-//             totalPosts: 0,
-//             publishedCount: 0,
-//             draftCount: 0,
-//             scheduledCount: 0,
-//             categoryCount: 0,
-//             tagCount: 0,
-//             recentPosts: [],
-//             error: "Could not load dashboard data. Please refresh the page.",
-//         };
-//     }
-// }
-
-
-// // --- Main Dashboard Page Component ---
-// export default async function DashboardPage() {
-//     const {
-//         totalPosts,
-//         publishedCount,
-//         draftCount,
-//         scheduledCount,
-//         categoryCount,
-//         tagCount,
-//         recentPosts,
-//         error
-//     } = await getDashboardStats();
-
-//     // FIX: A dedicated component for the page header for better structure.
-//     const DashboardHeader = () => (
-//         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-//             <div>
-//                 <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
-//                 <p className="mt-1 text-gray-600 dark:text-gray-400">A quick overview of your blog's content and activity.</p>
-//             </div>
-//             <Link
-//                 href="/admin/posts/new"
-//                 className="bg-blue-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-blue-700 transition-colors shadow-sm"
-//             >
-//                 Create New Post
-//             </Link>
-//         </div>
-//     );
-
-//     if (error) {
-//         return (
-//             <div className="text-center py-10">
-//                 <h1 className="text-2xl font-bold text-red-600">An Error Occurred</h1>
-//                 <p className="text-gray-600 mt-2">{error}</p>
-//             </div>
-//         );
-//     }
-
-//     return (
-//         <div className="space-y-8">
-//             <DashboardHeader />
-            
-//             {/* --- Stats Grid --- */}
-//             {/* FIX: A more detailed and visually appealing grid of statistics. */}
-//             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-//                 <StatCard 
-//                     title="Total Posts" 
-//                     value={totalPosts} 
-//                     icon={<FileText className="text-blue-500" />} 
-//                     color="blue"
-//                 />
-//                 <StatCard 
-//                     title="Published" 
-//                     value={publishedCount} 
-//                     icon={<CheckCircle2 className="text-green-500" />} 
-//                     color="green"
-//                 />
-//                 <StatCard 
-//                     title="Drafts" 
-//                     value={draftCount} 
-//                     icon={<BookOpen className="text-yellow-500" />} 
-//                     color="yellow"
-//                 />
-//                 <StatCard 
-//                     title="Scheduled" 
-//                     value={scheduledCount} 
-//                     icon={<Clock className="text-purple-500" />} 
-//                     color="purple"
-//                 />
-//                 <StatCard 
-//                     title="Categories" 
-//                     value={categoryCount} 
-//                     icon={<Layers3 className="text-indigo-500" />} 
-//                     color="indigo"
-//                 />
-//                 <StatCard 
-//                     title="Tags" 
-//                     value={tagCount} 
-//                     icon={<TagIcon className="text-pink-500" />} 
-//                     color="pink"
-//                 />
-//             </div>
-
-//             {/* --- Recent Posts Table --- */}
-//             {/* FIX: Encapsulated the recent posts list in a styled card for better visual hierarchy. */}
-//             <div className="bg-white dark:bg-gray-800 shadow-md rounded-xl">
-//                 <div className="p-6 border-b dark:border-gray-700">
-//                     <h2 className="text-xl font-semibold text-gray-800 dark:text-white">Recent Posts</h2>
-//                     <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-//                         Here are the latest posts you've been working on.
-//                     </p>
-//                 </div>
-//                 <RecentPostsTable posts={recentPosts} />
-//             </div>
-//         </div>
-//     );
-// }
-
-
 
 
 
 import { auth } from '@clerk/nextjs/server';
 import { redirect } from 'next/navigation';
+import { getCurrentUser } from '@/lib/getCurrentUser';
 import connectToDatabase from '@/lib/db';
 import Post from '@/models/Post';
 import Category from '@/models/Category';
@@ -181,7 +16,7 @@ import { BookOpen, Tag as TagIcon, Layers3, FileText, CheckCircle2, Clock } from
 import Link from 'next/link';
 
 // --- Data Fetching ---
-async function getDashboardStats() {
+async function getDashboardStats(userId: string) {
     try {
         await connectToDatabase();
 
@@ -193,12 +28,12 @@ async function getDashboardStats() {
             tagCount,
             recentPosts
         ] = await Promise.all([
-            Post.countDocuments({ status: 'published' }),
-            Post.countDocuments({ status: 'draft' }),
-            Post.countDocuments({ status: 'scheduled' }),
-            Category.countDocuments(),
-            Tag.countDocuments(),
-            Post.find({})
+            Post.countDocuments({ status: 'published', author: userId }),
+            Post.countDocuments({ status: 'draft', author: userId }),
+            Post.countDocuments({ status: 'scheduled', author: userId }),
+            Category.countDocuments({ author: userId }),
+            Tag.countDocuments({ author: userId }),
+            Post.find({ author: userId })
                 .sort({ createdAt: -1 })
                 .limit(5)
                 .select('title slug status createdAt')
@@ -235,9 +70,9 @@ async function getDashboardStats() {
 // --- Main Dashboard Page Component ---
 export default async function DashboardPage() {
     // Auth check - redirect if not signed in
-    const { userId } = await auth();
-    
-    if (!userId) {
+    const user = await getCurrentUser();
+
+    if (!user) {
         redirect('/sign-in');
     }
 
@@ -250,7 +85,7 @@ export default async function DashboardPage() {
         tagCount,
         recentPosts,
         error
-    } = await getDashboardStats();
+    } = await getDashboardStats(user.id);
 
     // Dashboard Header Component
     const DashboardHeader = () => (
@@ -280,7 +115,7 @@ export default async function DashboardPage() {
     return (
         <div className="space-y-8 p-6">
             <DashboardHeader />
-            
+
             {/* Stats Grid using shadcn/ui Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 <Card>

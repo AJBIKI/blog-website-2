@@ -203,9 +203,9 @@ export default function PostForm({ categories, tags, action, submitLabel, defaul
           {defaultValues?._id && <input type="hidden" {...form.register('_id')} />}
 
           {/* Main Content Card */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
+          <Card className="bg-gray-800 border-gray-700 shadow-xl rounded-xl">
+            <CardHeader className="border-b border-gray-700 pb-4">
+              <CardTitle className="flex items-center gap-2 text-white">
                 <FileText className="w-5 h-5" />
                 Post Content
               </CardTitle>
@@ -213,7 +213,7 @@ export default function PostForm({ categories, tags, action, submitLabel, defaul
                 The main content and details of your post
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6">
+            <CardContent className="space-y-6 pt-6">
               {/* Title */}
               <FormField
                 control={form.control}
@@ -258,9 +258,9 @@ export default function PostForm({ categories, tags, action, submitLabel, defaul
           </Card>
 
           {/* Media Card */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
+          <Card className="bg-gray-800 border-gray-700 shadow-xl rounded-xl">
+            <CardHeader className="border-b border-gray-700 pb-4">
+              <CardTitle className="flex items-center gap-2 text-white">
                 <ImageIcon className="w-5 h-5" />
                 Cover Image
               </CardTitle>
@@ -346,9 +346,9 @@ export default function PostForm({ categories, tags, action, submitLabel, defaul
           </Card>
 
           {/* Organization Card */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
+          <Card className="bg-gray-800 border-gray-700 shadow-xl rounded-xl">
+            <CardHeader className="border-b border-gray-700 pb-4">
+              <CardTitle className="flex items-center gap-2 text-white">
                 <Tag className="w-5 h-5" />
                 Organization
               </CardTitle>
@@ -434,9 +434,9 @@ export default function PostForm({ categories, tags, action, submitLabel, defaul
           </Card>
 
           {/* Publishing Card */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
+          <Card className="bg-gray-800 border-gray-700 shadow-xl rounded-xl">
+            <CardHeader className="border-b border-gray-700 pb-4">
+              <CardTitle className="flex items-center gap-2 text-white">
                 <Calendar className="w-5 h-5" />
                 Publishing Options
               </CardTitle>
@@ -520,7 +520,7 @@ export default function PostForm({ categories, tags, action, submitLabel, defaul
 
           {/* Server Messages */}
           {serverSuccess && (
-            <Alert className="border-green-200 bg-green-50">
+            <Alert className="border-green-800 bg-green-900/30 text-green-400">
               <Check className="h-4 w-4 text-green-600" />
               <AlertDescription className="text-green-800">
                 {serverSuccess}

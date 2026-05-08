@@ -40,9 +40,13 @@ export async function getCurrentUser(): Promise<IUser | null> {
 
     return newUser;
 
-  } catch (error) {
-    console.error('Error getting or syncing user:', error);
-    // Return null to prevent pages from crashing if there's a database or Clerk error
-    return null;
+  } catch (error: any) {
+    // If the error is a Next.js internal "digest" error (like redirect, notFound, or dynamic server bailouts), we MUST rethrow it or Next.js crashes.
+    if (error === null || (error && typeof error === 'object' && 'digest' in error)) {
+      throw error;
+    }
+
+    console.error('Database or Clerk API Error in getCurrentUser:', error);
+    throw error; // Let the application handle the crash gracefully rather than causing an infinite redirect loop
   }
 }
