@@ -13,13 +13,11 @@ const TagSchema: Schema = new Schema(
     name: {
       type: String,
       required: true,
-      unique: true,
       trim: true,
     },
     slug: {
       type: String,
       required: true,
-      unique: true,
       trim: true,
       // FIX: Added an index to the slug. This makes finding posts
       // by their tag much faster, which is useful for filtering.
@@ -35,6 +33,10 @@ const TagSchema: Schema = new Schema(
     timestamps: true,
   }
 );
+
+// Create compound index for unique name per user
+TagSchema.index({ name: 1, author: 1 }, { unique: true });
+TagSchema.index({ slug: 1, author: 1 }, { unique: true });
 
 // FIX: Refined the export for consistency with the other models.
 export default models.Tag || mongoose.model<ITag>('Tag', TagSchema);

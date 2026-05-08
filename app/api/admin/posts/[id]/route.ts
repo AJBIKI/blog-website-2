@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 import connectToDatabase from '@/lib/db';
 import Post from '@/models/Post';
 import { slugify } from '@/lib/slugify';
+import { isValidObjectId } from '@/lib/utils';
 import { z } from 'zod';
 
 const postSchema = z.object({
@@ -21,6 +22,11 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
   const {id}=await params
+
+  // Validate ObjectId format
+  if (!isValidObjectId(id)) {
+    return NextResponse.json({ error: 'Invalid post ID format' }, { status: 400 });
+  }
 
   try {
     await connectToDatabase();
@@ -46,6 +52,11 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
     const {id}=await params
+
+  // Validate ObjectId format
+  if (!isValidObjectId(id)) {
+    return NextResponse.json({ error: 'Invalid post ID format' }, { status: 400 });
+  }
 
   try {
     await connectToDatabase();
@@ -98,6 +109,11 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ id: s
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
     const {id}=await params
+
+  // Validate ObjectId format
+  if (!isValidObjectId(id)) {
+    return NextResponse.json({ error: 'Invalid post ID format' }, { status: 400 });
+  }
 
   try {
     await connectToDatabase();

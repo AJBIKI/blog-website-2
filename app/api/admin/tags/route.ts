@@ -19,7 +19,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Tag name is required' }, { status: 400 });
     }
 
-    const existingTag = await Tag.findOne({ name });
+    const existingTag = await Tag.findOne({ name, author: userId });
     if (existingTag) {
       return NextResponse.json({ error: 'Tag name already exists' }, { status: 409 });
     }

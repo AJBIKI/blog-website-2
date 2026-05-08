@@ -1,20 +1,26 @@
-import { redirect } from 'next/navigation';
+import { redirect, notFound } from 'next/navigation';
 import { getCurrentUser } from '@/lib/getCurrentUser';
 import connectToDatabase from '@/lib/db';
 import Category from '@/models/Category';
 import CategoryForm from '@/components/forms/CategoryForm';
 import { updateCategoryAction } from '@/lib/actions';
 import { LeanCategory } from '@/types/database';
+import { isValidObjectId } from '@/lib/utils';
 
-async function getCategory(id: string) {
+async function getCategory(id: string, userId: string) {
+  // Validate ObjectId format first
+  if (!isValidObjectId(id)) {
+    return { category: null, error: 'Invalid category ID format.' };
+  }
+
   try {
     await connectToDatabase();
-    const categoryResult = await Category.findById(id)
+    const categoryResult = await Category.findOne({ _id: id, author: userId })
       .select('_id name')
       .lean();
 
     if (!categoryResult) {
-      return { category: null, error: 'Category not found.' };
+      return { category: null, error: 'Category not found or unauthorized.' };
     }
     
     const category = categoryResult as unknown as LeanCategory;
@@ -39,11 +45,16 @@ export default async function EditCategoryPage({ params }: { params: Promise<{ i
   }
 
   const { id } = await params;
-const { category, error } = await getCategory(id);
-  // const { category, error } = await getCategory(await id);
+  
+  // Early validation - if ID is invalid, show 404
+  if (!isValidObjectId(id)) {
+    notFound();
+  }
+
+  const { category, error } = await getCategory(id, user.id);
 
   if (!category || error) {
-    redirect('/admin/categories');
+    notFound();
   }
 
   return (
